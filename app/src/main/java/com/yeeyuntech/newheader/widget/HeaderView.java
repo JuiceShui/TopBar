@@ -182,7 +182,11 @@ public class HeaderView extends ViewGroup {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
-        return mHelper.shouldInterceptTouchEvent(event);
+        if (hasViewCanScrollUp(mNormal, event.getRawX(), event.getRawY())) {
+            return false;
+        } else {
+            return mHelper.shouldInterceptTouchEvent(event);
+        }
     }
 
     @Override

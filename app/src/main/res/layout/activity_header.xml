@@ -33,12 +33,18 @@
             android:textColor="#ffffff"
             android:textSize="30sp" />
 
-        <android.support.v7.widget.RecyclerView
+        <FrameLayout
             android:id="@+id/normalbar"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#e01818"
-            android:gravity="center" />
+            android:layout_height="match_parent">
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recycler"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#e01818"
+                android:gravity="center" />
+        </FrameLayout>
 
         <TextView
             android:id="@+id/topbar"

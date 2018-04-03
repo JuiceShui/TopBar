@@ -25,7 +25,7 @@ public class HeaderActivity extends Activity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_header);
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.normalbar);
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler);
         List<String> data = new ArrayList<>();
         for (int i = 0; i < 40; i++) {
             data.add("This is " + i + "  ");
