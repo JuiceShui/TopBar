@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.yeeyuntech.newheader.widget.HeaderView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:another_toolbar="@id/another_toolbar"
+        app:normalbar="@id/normalbar"
+        app:toolbar="@id/toolbar"
+        app:topbar="@id/topbar">
+
+        <TextView
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#4f19c2"
+            android:gravity="center"
+            android:text="TOOL"
+            android:textColor="#ffffff"
+            android:textSize="30sp" />
+
+        <TextView
+            android:id="@+id/another_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#07d672"
+            android:gravity="center"
+            android:text="ANOTHER-TOOL"
+            android:textColor="#ffffff"
+            android:textSize="30sp" />
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/normalbar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#e01818"
+            android:gravity="center" />
+
+        <TextView
+            android:id="@+id/topbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#ff00b2"
+            android:gravity="center"
+            android:text="TOP"
+            android:textColor="#ffffff"
+            android:textSize="30sp" />
+    </com.yeeyuntech.newheader.widget.HeaderView>
+</LinearLayout>

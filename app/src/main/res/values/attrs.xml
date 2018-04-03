@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--整体的布局-->
+    <declare-styleable name="HeaderView">
+        <attr name="topbar" format="reference" />
+        <attr name="toolbar" format="reference" />
+        <attr name="another_toolbar" format="reference" />
+        <attr name="normalbar" format="reference" />
+        <attr name="load_range" format="integer" />
+        <attr name="scroll_range" format="integer" />
+    </declare-styleable>
+    <!--进度条-->
+    <declare-styleable name="CircleProgress">
+        <attr name="inner_radius" format="integer" />
+        <attr name="outter_radius" format="integer" />
+        <attr name="count" format="integer" />
+        <attr name="line_color" format="reference" />
+        <attr name="bg_color" format="reference" />
+    </declare-styleable>
+</resources>
