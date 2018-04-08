@@ -24,7 +24,7 @@ import io.reactivex.schedulers.Schedulers;
 /**
  * Description: Jojo on 2018/4/2 ,Copyright YeeyunTech
  */
-public class HeaderView extends ViewGroup {
+public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingListener {
     private View mTop, mTool, mAnotherTool, mNormal, mRefresh;
     private Context mContext;
     private int mTopId, mToolId, mAnotherToolId, mNormalId;
@@ -32,10 +32,14 @@ public class HeaderView extends ViewGroup {
     private boolean mFirstLayout = true;
     private ViewDragHelper mHelper;
     private int mScrollRange = 600;
-    private int mLoadRange = 400;
+    private int mLoadRange = 150;
     private boolean mIsLoading = false;
     private int mLoadingTop;
     private onRefreshListener mListener;
+    private FlingRecyclerView mFlingRecycler;
+    private boolean mIsFling = false;
+    private boolean mHasSetFlingListener = false;
+    private Disposable disposable;
 
     public HeaderView(Context context) {
         this(context, null);
@@ -100,7 +104,7 @@ public class HeaderView extends ViewGroup {
                             /**
                              * 模拟刷新完成
                              */
-                            Disposable disposable = Observable.timer(3000, TimeUnit.MILLISECONDS)
+                            disposable = Observable.timer(3000, TimeUnit.MILLISECONDS)
                                     .subscribeOn(Schedulers.io())
                                     .observeOn(AndroidSchedulers.mainThread())
                                     .subscribe(new Consumer<Long>() {
@@ -123,21 +127,32 @@ public class HeaderView extends ViewGroup {
                     if (top < mScrollRange) {
                         if (mAnotherTool == null) {
                             mTool.setTop(mNormal.getTop() - mTool.getMeasuredHeight());
-                            topHeight = mTool.getMeasuredHeight();
+                            topHeight = mTool.getMeasuredHeight() + mTop.getMeasuredHeight();
                         } else {
                             mTool.setTop(mNormal.getTop() - mTool.getMeasuredHeight() - mAnotherTool.getMeasuredHeight());
                             mAnotherTool.setTop(mNormal.getTop() - mAnotherTool.getMeasuredHeight());
-                            topHeight = mTool.getMeasuredHeight() + mAnotherTool.getMeasuredHeight();
+                            topHeight = mTool.getMeasuredHeight() + mAnotherTool.getMeasuredHeight() + mTop.getMeasuredHeight();
                         }
-                        if (top > topHeight + dp2px(20) && top < mLoadRange) {
+                        if (top > topHeight + dp2px(20) && top < mLoadRange + topHeight) {
                             mProgress.stopRotate();
-                            mProgress.setCurrentProgress((top - topHeight) / ((mLoadRange + dp2px(20) + 0f) / 2));
+                            mProgress.setCurrentProgress((top - topHeight + 0f) / (mLoadRange + 0f));
                             mIsLoading = false;
-                        } else if (top >= mLoadRange) {
+                            //取消事件
+                            if (disposable != null && !disposable.isDisposed()) {
+                                disposable.dispose();
+                            }
+                        } else if (top >= mLoadRange + topHeight) {
                             mProgress.setCurrentProgress(1f);//防止拉过快导致的缺帧数
                             mProgress.rotate();
                             mIsLoading = true;//切换状态
-                            mLoadingTop = mLoadRange;
+                            mLoadingTop = mLoadRange + topHeight;
+                        } else if (top <= topHeight + dp2px(20)) {
+                            mProgress.stopRotate();
+                            mProgress.setCurrentProgress(0f);
+                            //取消事件
+                            if (disposable != null && !disposable.isDisposed()) {
+                                disposable.dispose();
+                            }
                         }
                     }
                     requestLayout();
@@ -158,6 +173,8 @@ public class HeaderView extends ViewGroup {
                             mAnotherTool.setTop(mNormal.getTop() - mAnotherTool.getMeasuredHeight());
                         }
                         requestLayout();
+                    } else if (top < 0) {
+
                     } else {
                         //防止拖拽过快导致的  上下脱节
                         if (mAnotherTool == null) {
@@ -182,6 +199,10 @@ public class HeaderView extends ViewGroup {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
+        if (mFlingRecycler != null && !mHasSetFlingListener) {
+            mFlingRecycler.setOnFlingListener(this);
+            mHasSetFlingListener = true;
+        }
         if (hasViewCanScrollUp(mNormal, event.getRawX(), event.getRawY())) {
             return false;
         } else {
@@ -357,6 +378,9 @@ public class HeaderView extends ViewGroup {
             mHelper.smoothSlideViewTo(mNormal, 0, mTop.getMeasuredHeight() + mTool.getMeasuredHeight() + mAnotherTool.getMeasuredHeight());
         }
         ViewCompat.postInvalidateOnAnimation(this);
+        if (mIsFling) {
+            mIsFling = false;
+        }
     }
 
     /**
@@ -377,10 +401,21 @@ public class HeaderView extends ViewGroup {
         }
     }
 
+    @Override
+    public void onFling() {
+        if (!mIsFling) {
+            mIsFling = true;
+            smoothScrollTo();
+        }
+    }
+
     /**
      * 判断坐标是否在view区域内
      */
     private boolean isInViewArea(View view, float x, float y) {
+        if (view instanceof FlingRecyclerView && mFlingRecycler == null) {
+            mFlingRecycler = (FlingRecyclerView) view;
+        }
         int[] local = new int[2];
         view.getLocationOnScreen(local);
         return x > local[0] && x < local[0] + view.getMeasuredWidth() && y > local[1] && y < local[1] + view.getMeasuredHeight();
@@ -390,6 +425,7 @@ public class HeaderView extends ViewGroup {
     public void setScrollRange(int scrollRange) {
         this.mScrollRange = mScrollRange;
     }
+
 
     public interface onRefreshListener {
         void onRefresh();

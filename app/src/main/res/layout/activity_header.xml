@@ -16,8 +16,8 @@
         <TextView
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#4f19c2"
+            android:layout_height="50dp"
+            android:background="@android:color/transparent"
             android:gravity="center"
             android:text="TOOL"
             android:textColor="#ffffff"
@@ -26,8 +26,8 @@
         <TextView
             android:id="@+id/another_toolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#07d672"
+            android:layout_height="50dp"
+            android:background="@android:color/transparent"
             android:gravity="center"
             android:text="ANOTHER-TOOL"
             android:textColor="#ffffff"
@@ -38,19 +38,19 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <android.support.v7.widget.RecyclerView
+            <com.yeeyuntech.newheader.widget.FlingRecyclerView
                 android:id="@+id/recycler"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="#e01818"
+                android:background="@android:color/transparent"
                 android:gravity="center" />
         </FrameLayout>
 
         <TextView
             android:id="@+id/topbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#ff00b2"
+            android:layout_height="50dp"
+            android:background="@android:color/transparent"
             android:gravity="center"
             android:text="TOP"
             android:textColor="#ffffff"
