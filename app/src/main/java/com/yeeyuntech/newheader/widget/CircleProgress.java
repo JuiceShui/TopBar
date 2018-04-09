@@ -64,7 +64,7 @@ public class CircleProgress extends View {
         mPaint.setColor(mColor);
         mPaint.setAntiAlias(true);
         mPaint.setStrokeCap(Paint.Cap.ROUND);
-        mPaint.setStrokeWidth(dp2px(3));
+        mPaint.setStrokeWidth(dp2px(2));
         mPaint.setStyle(Paint.Style.FILL);
         mRotate = AnimationUtils.loadAnimation(mContext, R.anim.rotate);
         LinearInterpolator lin = new LinearInterpolator();

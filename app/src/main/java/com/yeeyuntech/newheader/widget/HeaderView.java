@@ -24,7 +24,7 @@ import io.reactivex.schedulers.Schedulers;
 /**
  * Description: Jojo on 2018/4/2 ,Copyright YeeyunTech
  */
-public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingListener {
+public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingListener, FlingScrollView.onScrollFlingListener {
     private View mTop, mTool, mAnotherTool, mNormal, mRefresh;
     private Context mContext;
     private int mTopId, mToolId, mAnotherToolId, mNormalId;
@@ -35,10 +35,12 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
     private int mLoadRange = 150;
     private boolean mIsLoading = false;
     private int mLoadingTop;
-    private onRefreshListener mListener;
+    private onRefreshListener mRefreshListener;
+    private OnToolsVisibilityChangeListener mToolVisibleChangeListener;
     private FlingRecyclerView mFlingRecycler;
-    private boolean mIsFling = false;
-    private boolean mHasSetFlingListener = false;
+    private FlingScrollView mFlingScroll;
+    private boolean mIsRecyclerFling = false, mIsScrollFling = false;
+    private boolean mHasSetFlingRecyclerListener = false, mHasSetFlingScrollListener = false;
     private Disposable disposable;
 
     public HeaderView(Context context) {
@@ -98,8 +100,8 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
                             }
                         } else {
                             top = mLoadingTop;//执行loading
-                            if (mListener != null) {
-                                mListener.onRefresh();
+                            if (mRefreshListener != null) {
+                                mRefreshListener.onRefresh();
                             }
                             /**
                              * 模拟刷新完成
@@ -125,7 +127,7 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
                 int topHeight = 0;//normal上面除开顶部的总高
                 if (changedView == mNormal) {
                     if (top < mScrollRange) {
-                        if (mAnotherTool == null) {
+                        if (mAnotherTool == null) {//位置改变时，设置toolbar，anothertoolbar的位置
                             mTool.setTop(mNormal.getTop() - mTool.getMeasuredHeight());
                             topHeight = mTool.getMeasuredHeight() + mTop.getMeasuredHeight();
                         } else {
@@ -133,25 +135,36 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
                             mAnotherTool.setTop(mNormal.getTop() - mAnotherTool.getMeasuredHeight());
                             topHeight = mTool.getMeasuredHeight() + mAnotherTool.getMeasuredHeight() + mTop.getMeasuredHeight();
                         }
-                        if (top > topHeight + dp2px(20) && top < mLoadRange + topHeight) {
-                            mProgress.stopRotate();
-                            mProgress.setCurrentProgress((top - topHeight + 0f) / (mLoadRange + 0f));
-                            mIsLoading = false;
-                            //取消事件
-                            if (disposable != null && !disposable.isDisposed()) {
-                                disposable.dispose();
-                            }
-                        } else if (top >= mLoadRange + topHeight) {
-                            mProgress.setCurrentProgress(1f);//防止拉过快导致的缺帧数
-                            mProgress.rotate();
-                            mIsLoading = true;//切换状态
-                            mLoadingTop = mLoadRange + topHeight;
-                        } else if (top <= topHeight + dp2px(20)) {
-                            mProgress.stopRotate();
+                        //位置改变时设置progress的样式 ，调用tools的样式
+                        if (top <= topHeight + dp2px(20)) {
+                            mProgress.stopRotate();////防止拉过快导致的缺帧数
                             mProgress.setCurrentProgress(0f);
                             //取消事件
                             if (disposable != null && !disposable.isDisposed()) {
                                 disposable.dispose();
+                            }
+                            if (top < mTop.getMeasuredHeight()) {//当隐藏tool时
+                                if (mToolVisibleChangeListener != null) {
+                                    mToolVisibleChangeListener.onToolsInvisible();
+                                }
+                            }
+                        } else {
+                            if (top > topHeight + dp2px(20) && top < mLoadRange + topHeight + dp2px(20)) {//设置进度条的显示
+                                mProgress.stopRotate();
+                                mProgress.setCurrentProgress((top - topHeight - dp2px(20) + 0f) / (mLoadRange + 0f));
+                                mIsLoading = false;
+                                //取消事件
+                                if (disposable != null && !disposable.isDisposed()) {
+                                    disposable.dispose();
+                                }
+                            } else if (top >= mLoadRange + topHeight + dp2px(20)) {
+                                mProgress.setCurrentProgress(1f);//防止拉过快导致的缺帧数
+                                mProgress.rotate();
+                                mIsLoading = true;//切换状态
+                                mLoadingTop = mLoadRange + topHeight + dp2px(20);
+                            }
+                            if (mToolVisibleChangeListener != null) {//显示tools时
+                                mToolVisibleChangeListener.onToolsVisible();
                             }
                         }
                     }
@@ -173,7 +186,7 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
                             mAnotherTool.setTop(mNormal.getTop() - mAnotherTool.getMeasuredHeight());
                         }
                         requestLayout();
-                    } else if (top < 0) {
+                    } else if (top < 0) {//负值限制进入
 
                     } else {
                         //防止拖拽过快导致的  上下脱节
@@ -199,9 +212,14 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
-        if (mFlingRecycler != null && !mHasSetFlingListener) {
-            mFlingRecycler.setOnFlingListener(this);
-            mHasSetFlingListener = true;
+        //判断是否有需要进行抛出的View事件传递
+        if (mFlingRecycler != null && !mHasSetFlingRecyclerListener) {//not null&& has not set
+            mFlingRecycler.setOnFlingListener(this);//设置fling监听
+            mHasSetFlingRecyclerListener = true;
+        }
+        if (mFlingScroll != null && !mHasSetFlingScrollListener) {//not null&& has not set
+            mFlingScroll.setScrollFlingListener(this);
+            mHasSetFlingScrollListener = true;
         }
         if (hasViewCanScrollUp(mNormal, event.getRawX(), event.getRawY())) {
             return false;
@@ -378,8 +396,11 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
             mHelper.smoothSlideViewTo(mNormal, 0, mTop.getMeasuredHeight() + mTool.getMeasuredHeight() + mAnotherTool.getMeasuredHeight());
         }
         ViewCompat.postInvalidateOnAnimation(this);
-        if (mIsFling) {
-            mIsFling = false;
+        if (mIsRecyclerFling) {
+            mIsRecyclerFling = false;
+        }
+        if (mIsScrollFling) {
+            mIsScrollFling = false;
         }
     }
 
@@ -401,10 +422,20 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
         }
     }
 
+    //FlingRecycler
     @Override
     public void onFling() {
-        if (!mIsFling) {
-            mIsFling = true;
+        if (!mIsRecyclerFling) {
+            mIsRecyclerFling = true;
+            smoothScrollTo();
+        }
+    }
+
+    //FlingScroll
+    @Override
+    public void onScrollFling() {
+        if (!mIsScrollFling) {
+            mIsScrollFling = true;
             smoothScrollTo();
         }
     }
@@ -413,8 +444,11 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
      * 判断坐标是否在view区域内
      */
     private boolean isInViewArea(View view, float x, float y) {
+        //判断是否有可滑动的view的类型
         if (view instanceof FlingRecyclerView && mFlingRecycler == null) {
             mFlingRecycler = (FlingRecyclerView) view;
+        } else if (view instanceof FlingScrollView && mFlingScroll == null) {
+            mFlingScroll = (FlingScrollView) view;
         }
         int[] local = new int[2];
         view.getLocationOnScreen(local);
@@ -432,12 +466,24 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
     }
 
     public void setOnRefreshListener(onRefreshListener listener) {
-        this.mListener = listener;
+        this.mRefreshListener = listener;
     }
 
     public void onRefreshFinish() {
         mIsLoading = false;
         smoothScrollTo();
     }
+
+    public interface OnToolsVisibilityChangeListener {
+        void onToolsInvisible();
+
+        void onToolsVisible();
+
+    }
+
+    public void setOnToolsVisibleChangeListener(OnToolsVisibilityChangeListener listener) {
+        this.mToolVisibleChangeListener = listener;
+    }
+
     //------------------提供给外部调用  End--------------------//
 }

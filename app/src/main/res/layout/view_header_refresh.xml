@@ -20,8 +20,8 @@
             android:layout_marginTop="20dp"
             app:bg_color="@color/bg_color"
             app:color="@color/white"
-            app:count="12"
+            app:count="10"
             app:inner_radius="4"
-            app:outter_radius="12" />
+            app:outter_radius="11" />
     </LinearLayout>
 </FrameLayout>
