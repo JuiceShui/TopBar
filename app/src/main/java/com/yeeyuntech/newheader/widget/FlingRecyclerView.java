@@ -15,6 +15,8 @@ public class FlingRecyclerView extends RecyclerView {
     private long lastTime = 0, currentTime = 0;
     private boolean isShouldFling = false;
     private onFlingListener mListener;
+    private boolean isToBottom = false;//check if recycler view slide to bottom
+    private onLoadMoreListener mLoadMoreListener;
 
     public FlingRecyclerView(Context context) {
         this(context, null);
@@ -45,13 +47,18 @@ public class FlingRecyclerView extends RecyclerView {
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
+                if (newState == RecyclerView.SCROLL_STATE_IDLE && isToBottom) {//load more
+                    if (mLoadMoreListener != null) {
+                        mLoadMoreListener.loadMore();
+                    }
+                }
             }
 
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
                 RecyclerView.LayoutManager layoutManager = FlingRecyclerView.this.getLayoutManager();
-                if (layoutManager instanceof LinearLayoutManager) {
+                if (layoutManager instanceof LinearLayoutManager) {//fling
                     LinearLayoutManager linearLayoutManager = (LinearLayoutManager) layoutManager;
                     currentPosition = linearLayoutManager.findFirstVisibleItemPosition();
                     if (currentPosition == 0 && dy < -50) {
@@ -61,6 +68,8 @@ public class FlingRecyclerView extends RecyclerView {
                         }
                     }
                 }
+                //load more
+                isToBottom = isSlideToBottom(recyclerView);
             }
         });
     }
@@ -86,4 +95,19 @@ public class FlingRecyclerView extends RecyclerView {
     public void setOnFlingListener(onFlingListener listener) {
         mListener = listener;
     }
+
+    public boolean isSlideToBottom(RecyclerView recyclerView) {
+        if (recyclerView == null) return false;
+        return recyclerView.computeVerticalScrollExtent() + recyclerView.computeVerticalScrollOffset()
+                >= recyclerView.computeVerticalScrollRange();
+    }
+
+    public interface onLoadMoreListener {
+        void loadMore();
+    }
+
+    public void setOnLoadMoreListener(onLoadMoreListener listener) {
+        this.mLoadMoreListener = listener;
+    }
+
 }

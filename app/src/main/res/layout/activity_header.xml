@@ -7,6 +7,7 @@
     android:orientation="vertical">
 
     <com.yeeyuntech.newheader.widget.HeaderView
+        android:id="@+id/header"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:another_toolbar="@id/another_toolbar"
@@ -18,7 +19,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:background="@android:color/transparent"
+            android:background="@color/bg_color"
             android:gravity="center"
             android:text="TOOL"
             android:textColor="#ffffff"
@@ -28,7 +29,7 @@
             android:id="@+id/another_toolbar"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:background="@android:color/transparent"
+            android:background="@color/bg_color"
             android:gravity="center"
             android:text="ANOTHER-TOOL"
             android:textColor="#ffffff"
@@ -44,7 +45,7 @@
                 android:id="@+id/recycler"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@android:color/transparent"
+                android:background="@color/bg_color"
                 android:gravity="center"
                 tools:listitem="@layout/item_simple_holder" />
 
@@ -96,7 +97,7 @@
             android:id="@+id/topbar"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:background="@android:color/transparent"
+            android:background="@color/bg_color"
             android:gravity="center"
             android:text="TOP"
             android:textColor="#ffffff"

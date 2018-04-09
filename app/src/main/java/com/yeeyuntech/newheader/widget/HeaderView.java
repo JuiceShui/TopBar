@@ -13,18 +13,12 @@ import android.view.ViewGroup;
 
 import com.yeeyuntech.newheader.R;
 
-import java.util.concurrent.TimeUnit;
-
-import io.reactivex.Observable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * Description: Jojo on 2018/4/2 ,Copyright YeeyunTech
  */
-public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingListener, FlingScrollView.onScrollFlingListener {
+public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingListener, FlingScrollView.onScrollFlingListener, FlingRecyclerView.onLoadMoreListener {
     private View mTop, mTool, mAnotherTool, mNormal, mRefresh;
     private Context mContext;
     private int mTopId, mToolId, mAnotherToolId, mNormalId;
@@ -42,6 +36,7 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
     private boolean mIsRecyclerFling = false, mIsScrollFling = false;
     private boolean mHasSetFlingRecyclerListener = false, mHasSetFlingScrollListener = false;
     private Disposable disposable;
+    private onLoadMoreListener mLoadMoreListener;
 
     public HeaderView(Context context) {
         this(context, null);
@@ -100,13 +95,10 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
                             }
                         } else {
                             top = mLoadingTop;//执行loading
-                            if (mRefreshListener != null) {
-                                mRefreshListener.onRefresh();
-                            }
                             /**
                              * 模拟刷新完成
                              */
-                            disposable = Observable.timer(3000, TimeUnit.MILLISECONDS)
+                            /*disposable = Observable.timer(3000, TimeUnit.MILLISECONDS)
                                     .subscribeOn(Schedulers.io())
                                     .observeOn(AndroidSchedulers.mainThread())
                                     .subscribe(new Consumer<Long>() {
@@ -114,7 +106,28 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
                                         public void accept(Long aLong) throws Exception {
                                             onRefreshFinish();
                                         }
-                                    });
+                                    });*/
+                            /*disposable = Observable
+                                    .create(new ObservableOnSubscribe<String>() {
+                                        @Override
+                                        public void subscribe(ObservableEmitter<String> emitter) throws Exception {
+                                            emitter.onNext("");
+                                            emitter.onComplete();
+                                        }
+                                    })
+                                    .subscribeOn(Schedulers.io())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .subscribe(new Consumer<String>() {
+                                        @Override
+                                        public void accept(String s) throws Exception {
+                                            if (mRefreshListener != null) {
+                                                mRefreshListener.onRefresh();
+                                            }
+                                        }
+                                    });*/
+                            if (mRefreshListener != null) {
+                                mRefreshListener.onRefresh();
+                            }
                         }
                         mHelper.settleCapturedViewAt(0, top);
                     }
@@ -140,12 +153,20 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
                             mProgress.stopRotate();////防止拉过快导致的缺帧数
                             mProgress.setCurrentProgress(0f);
                             //取消事件
-                            if (disposable != null && !disposable.isDisposed()) {
+                           /* if (disposable != null) {
                                 disposable.dispose();
+                                mRefreshListener.onCancelRefresh();
+                            }*/
+                            if (mRefreshListener != null) {
+                                mRefreshListener.onCancelRefresh();
                             }
-                            if (top < mTop.getMeasuredHeight()) {//当隐藏tool时
+                            if (top < mTop.getMeasuredHeight() + mTool.getMeasuredHeight() / 2) {//当隐藏tool时
                                 if (mToolVisibleChangeListener != null) {
                                     mToolVisibleChangeListener.onToolsInvisible();
+                                }
+                            } else {
+                                if (mToolVisibleChangeListener != null) {
+                                    mToolVisibleChangeListener.onToolsVisible();//显示Tools
                                 }
                             }
                         } else {
@@ -154,8 +175,12 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
                                 mProgress.setCurrentProgress((top - topHeight - dp2px(20) + 0f) / (mLoadRange + 0f));
                                 mIsLoading = false;
                                 //取消事件
-                                if (disposable != null && !disposable.isDisposed()) {
+                                /*if (disposable != null) {
                                     disposable.dispose();
+                                    mRefreshListener.onCancelRefresh();
+                                }*/
+                                if (mRefreshListener != null) {
+                                    mRefreshListener.onCancelRefresh();
                                 }
                             } else if (top >= mLoadRange + topHeight + dp2px(20)) {
                                 mProgress.setCurrentProgress(1f);//防止拉过快导致的缺帧数
@@ -215,6 +240,7 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
         //判断是否有需要进行抛出的View事件传递
         if (mFlingRecycler != null && !mHasSetFlingRecyclerListener) {//not null&& has not set
             mFlingRecycler.setOnFlingListener(this);//设置fling监听
+            mFlingRecycler.setOnLoadMoreListener(this);
             mHasSetFlingRecyclerListener = true;
         }
         if (mFlingScroll != null && !mHasSetFlingScrollListener) {//not null&& has not set
@@ -440,6 +466,14 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
         }
     }
 
+    //load more
+    @Override
+    public void loadMore() {
+        if (mLoadMoreListener != null) {
+            mLoadMoreListener.loadMore();
+        }
+    }
+
     /**
      * 判断坐标是否在view区域内
      */
@@ -460,9 +494,10 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
         this.mScrollRange = mScrollRange;
     }
 
-
     public interface onRefreshListener {
         void onRefresh();
+
+        void onCancelRefresh();
     }
 
     public void setOnRefreshListener(onRefreshListener listener) {
@@ -483,6 +518,14 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
 
     public void setOnToolsVisibleChangeListener(OnToolsVisibilityChangeListener listener) {
         this.mToolVisibleChangeListener = listener;
+    }
+
+    public interface onLoadMoreListener {
+        void loadMore();
+    }
+
+    public void setOnLoadMoreListener(onLoadMoreListener listener) {
+        this.mLoadMoreListener = listener;
     }
 
     //------------------提供给外部调用  End--------------------//
