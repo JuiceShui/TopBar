@@ -1,11 +1,16 @@
 package com.yeeyuntech.newheader.widget;
 
-import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.yeeyuntech.newheader.R;
@@ -24,7 +29,7 @@ import io.reactivex.schedulers.Schedulers;
 /**
  * Description: Jojo on 2018/4/2 ,Copyright YeeyunTech
  */
-public class HeaderActivity extends Activity implements HeaderView.onLoadMoreListener, HeaderView.onRefreshListener, HeaderView.OnToolsVisibilityChangeListener {
+public class HeaderActivity extends AppCompatActivity implements HeaderView.onLoadMoreListener, HeaderView.onRefreshListener, HeaderView.OnToolsVisibilityChangeListener {
     private SimpleAdapter mAdapter;
     private HeaderView mHeader;
     private char A = 'a';
@@ -33,6 +38,7 @@ public class HeaderActivity extends Activity implements HeaderView.onLoadMoreLis
     private List<String> mData = new ArrayList<>();
     private Disposable disposable;
     private TextView mTop, mTool, mATool;
+    private Button jump;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -41,9 +47,10 @@ public class HeaderActivity extends Activity implements HeaderView.onLoadMoreLis
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_header);
         FlingRecyclerView recyclerView = findViewById(R.id.recycler);
-        mTop = findViewById(R.id.topbar);
-        mTool = findViewById(R.id.toolbar);
-        mATool = findViewById(R.id.another_toolbar);
+        mTop = findViewById(R.id.tv_top);
+        mTool = findViewById(R.id.tv_tool);
+        jump = findViewById(R.id.jump);
+        // mATool = findViewById(R.id.tv_an);
         mHeader = findViewById(R.id.header);
         mHeader.setOnLoadMoreListener(this);
         mHeader.setOnRefreshListener(this);
@@ -58,6 +65,13 @@ public class HeaderActivity extends Activity implements HeaderView.onLoadMoreLis
         List<String> data = getData(false, false);
         mData.addAll(data);
         mAdapter.notifyDataSetChanged();
+        jump.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ActivityOptionsCompat compat = ActivityOptionsCompat.makeSceneTransitionAnimation(HeaderActivity.this, mTop, "share");
+                ActivityCompat.startActivity(HeaderActivity.this, new Intent(HeaderActivity.this, TestActivity.class), compat.toBundle());
+            }
+        });
     }
 
     @Override
@@ -96,17 +110,17 @@ public class HeaderActivity extends Activity implements HeaderView.onLoadMoreLis
     }
 
     @Override
-    public void onToolsInvisible() {
+    public void onToolsInvisible(boolean has) {
         mTop.setText("This is Top");
         mTool.setText("");
-        mATool.setText("");
+        // mATool.setText("");
     }
 
     @Override
-    public void onToolsVisible() {
+    public void onToolsVisible(boolean has) {
         mTop.setText("");
         mTool.setText("This is Top");
-        mATool.setText("Annnnnnn");
+        // mATool.setText("Annnnnnn");
     }
 
     private List<String> getData(boolean isLoadMore, boolean isRefresh) {

@@ -86,7 +86,7 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
                             }
                         }
                     } else {
-                        int top;
+                        int top = 0;
                         if (!mIsLoading) {
                             if (mAnotherTool == null) {
                                 top = mTop.getMeasuredHeight() + mTool.getMeasuredHeight();
@@ -94,7 +94,7 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
                                 top = mTop.getMeasuredHeight() + mTool.getMeasuredHeight() + mAnotherTool.getMeasuredHeight();
                             }
                         } else {
-                            top = mLoadingTop;//执行loading
+
                             /**
                              * 模拟刷新完成
                              */
@@ -126,6 +126,7 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
                                         }
                                     });*/
                             if (mRefreshListener != null) {
+                                top = mLoadingTop;//执行loading
                                 mRefreshListener.onRefresh();
                             }
                         }
@@ -138,58 +139,66 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
             @Override
             public void onViewPositionChanged(@NonNull View changedView, int left, int top, int dx, int dy) {
                 int topHeight = 0;//normal上面除开顶部的总高
+                boolean hasAnotherTool;
                 if (changedView == mNormal) {
                     if (top < mScrollRange) {
                         if (mAnotherTool == null) {//位置改变时，设置toolbar，anothertoolbar的位置
                             mTool.setTop(mNormal.getTop() - mTool.getMeasuredHeight());
                             topHeight = mTool.getMeasuredHeight() + mTop.getMeasuredHeight();
+                            hasAnotherTool = false;
                         } else {
                             mTool.setTop(mNormal.getTop() - mTool.getMeasuredHeight() - mAnotherTool.getMeasuredHeight());
                             mAnotherTool.setTop(mNormal.getTop() - mAnotherTool.getMeasuredHeight());
                             topHeight = mTool.getMeasuredHeight() + mAnotherTool.getMeasuredHeight() + mTop.getMeasuredHeight();
+                            hasAnotherTool = true;
                         }
                         //位置改变时设置progress的样式 ，调用tools的样式
                         if (top <= topHeight + dp2px(20)) {
-                            mProgress.stopRotate();////防止拉过快导致的缺帧数
-                            mProgress.setCurrentProgress(0f);
+                            if (mRefreshListener != null) {//当没有listener时，不执行
+                                mProgress.stopRotate();////防止拉过快导致的缺帧数
+                                mProgress.setCurrentProgress(0f);
+                                mRefreshListener.onCancelRefresh();
+                            }
                             //取消事件
                            /* if (disposable != null) {
                                 disposable.dispose();
                                 mRefreshListener.onCancelRefresh();
                             }*/
-                            if (mRefreshListener != null) {
+                           /* if (mRefreshListener != null) {
                                 mRefreshListener.onCancelRefresh();
-                            }
-                            if (top < mTop.getMeasuredHeight() + mTool.getMeasuredHeight() / 2) {//当隐藏tool时
+                            }*/
+                            if (top < topHeight - mTool.getMeasuredHeight() / 2) {//当隐藏tool时
                                 if (mToolVisibleChangeListener != null) {
-                                    mToolVisibleChangeListener.onToolsInvisible();
+                                    mToolVisibleChangeListener.onToolsInvisible(hasAnotherTool);
                                 }
                             } else {
                                 if (mToolVisibleChangeListener != null) {
-                                    mToolVisibleChangeListener.onToolsVisible();//显示Tools
+                                    mToolVisibleChangeListener.onToolsVisible(hasAnotherTool);//显示Tools
                                 }
                             }
                         } else {
-                            if (top > topHeight + dp2px(20) && top < mLoadRange + topHeight + dp2px(20)) {//设置进度条的显示
-                                mProgress.stopRotate();
-                                mProgress.setCurrentProgress((top - topHeight - dp2px(20) + 0f) / (mLoadRange + 0f));
-                                mIsLoading = false;
-                                //取消事件
+                            if (mRefreshListener != null) {//当没有listener时，不执行
+                                if (top > topHeight + dp2px(20) && top < mLoadRange + topHeight + dp2px(20)) {//设置进度条的显示
+                                    mProgress.stopRotate();
+                                    mProgress.setCurrentProgress((top - topHeight - dp2px(20) + 0f) / (mLoadRange + 0f));
+                                    mIsLoading = false;
+                                    //取消事件
                                 /*if (disposable != null) {
                                     disposable.dispose();
                                     mRefreshListener.onCancelRefresh();
                                 }*/
-                                if (mRefreshListener != null) {
-                                    mRefreshListener.onCancelRefresh();
+                                    if (mRefreshListener != null) {
+                                        mRefreshListener.onCancelRefresh();
+                                    }
+                                } else if (top >= mLoadRange + topHeight + dp2px(20)) {
+                                    mProgress.setCurrentProgress(1f);//防止拉过快导致的缺帧数
+                                    mProgress.rotate();
+                                    mIsLoading = true;//切换状态
+                                    mLoadingTop = mLoadRange + topHeight + dp2px(20);
                                 }
-                            } else if (top >= mLoadRange + topHeight + dp2px(20)) {
-                                mProgress.setCurrentProgress(1f);//防止拉过快导致的缺帧数
-                                mProgress.rotate();
-                                mIsLoading = true;//切换状态
-                                mLoadingTop = mLoadRange + topHeight + dp2px(20);
                             }
                             if (mToolVisibleChangeListener != null) {//显示tools时
-                                mToolVisibleChangeListener.onToolsVisible();
+                                mToolVisibleChangeListener.onToolsVisible(hasAnotherTool);
                             }
                         }
                     }
@@ -293,7 +302,7 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         //TOP
         //MarginLayoutParams lp = (MarginLayoutParams) mTop.getLayoutParams();
-        int topTop = mTop.getTop();
+        int topTop = 0;
         mTop.layout(l, topTop,
                 mTop.getMeasuredWidth(),
                 topTop + mTop.getMeasuredHeight());
@@ -510,9 +519,9 @@ public class HeaderView extends ViewGroup implements FlingRecyclerView.onFlingLi
     }
 
     public interface OnToolsVisibilityChangeListener {
-        void onToolsInvisible();
+        void onToolsInvisible(boolean hasAnotherTool);
 
-        void onToolsVisible();
+        void onToolsVisible(boolean hasAnotherTool);
 
     }
 

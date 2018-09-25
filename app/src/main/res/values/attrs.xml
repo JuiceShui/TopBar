@@ -17,4 +17,8 @@
         <attr name="line_color" format="reference" />
         <attr name="bg_color" format="reference" />
     </declare-styleable>
+    <declare-styleable name="StatusBarBackground">
+        <attr name="android:foreground" />
+        <attr name="android:background" />
+    </declare-styleable>
 </resources>

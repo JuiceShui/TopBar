@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.wkp.softlinearlayout.view.SoftLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    app:wkp_hasStatusBar="false"
+    android:orientation="vertical">
+    <!-- 本应用中使用 -->
+    <com.yeeyuntech.newheader.widget.HeaderView
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:normalbar="@id/normalbar"
+        app:toolbar="@id/toolbar"
+        app:topbar="@id/topbar">
+
+        <FrameLayout
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="50dp">
+
+            <TextView
+                android:id="@+id/tv_tool"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@color/bg_color"
+                android:gravity="center"
+                android:text="TOOL"
+                android:textColor="#ffffff"
+                android:textSize="30sp"
+                android:transitionName="share" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/normalbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fitsSystemWindows="true"
+            android:paddingBottom="50dp">
+            <!--设置一个与topbar等高的padding-->
+            <com.yeeyuntech.newheader.widget.FlingScrollView
+                android:id="@+id/scroll"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fitsSystemWindows="true"
+                android:focusable="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fitsSystemWindows="true"
+                    android:orientation="vertical">
+
+                    <EditText
+                        android:id="@+id/edit_1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="50dp"
+                        android:paddingTop="50dp" />
+
+                    <EditText
+                        android:id="@+id/edit_2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="50dp"
+                        android:paddingTop="50dp" />
+
+                    <EditText
+                        android:id="@+id/edit_3"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="50dp"
+                        android:paddingTop="50dp" />
+
+                    <EditText
+                        android:id="@+id/edit_4"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="50dp"
+                        android:paddingTop="50dp" />
+
+
+                </LinearLayout>
+            </com.yeeyuntech.newheader.widget.FlingScrollView>
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/topbar"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:fitsSystemWindows="true">
+
+            <TextView
+                android:id="@+id/tv_top"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@color/bg_color"
+                android:fitsSystemWindows="true"
+                android:gravity="center"
+                android:text="TOP"
+                android:textColor="#ffffff"
+                android:textSize="30sp" />
+        </FrameLayout>
+    </com.yeeyuntech.newheader.widget.HeaderView>
+</com.wkp.softlinearlayout.view.SoftLinearLayout>

@@ -10,30 +10,41 @@
         android:id="@+id/header"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:another_toolbar="@id/another_toolbar"
         app:normalbar="@id/normalbar"
         app:toolbar="@id/toolbar"
         app:topbar="@id/topbar">
 
-        <TextView
+        <FrameLayout
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:background="@color/bg_color"
-            android:gravity="center"
-            android:text="TOOL"
-            android:textColor="#ffffff"
-            android:textSize="30sp" />
+            android:layout_height="50dp">
 
-        <TextView
+            <TextView
+                android:id="@+id/tv_tool"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@color/bg_color"
+                android:gravity="center"
+                android:text="TOOL"
+                android:textColor="#ffffff"
+                android:textSize="30sp" />
+        </FrameLayout>
+
+        <!--<FrameLayout
             android:id="@+id/another_toolbar"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:background="@color/bg_color"
-            android:gravity="center"
-            android:text="ANOTHER-TOOL"
-            android:textColor="#ffffff"
-            android:textSize="30sp" />
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/tv_an"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@color/bg_color"
+                android:gravity="center"
+                android:text="ANOTHER-TOOL"
+                android:textColor="#ffffff"
+                android:textSize="30sp" />
+        </FrameLayout>-->
 
         <FrameLayout
             android:id="@+id/normalbar"
@@ -93,14 +104,27 @@
             </com.yeeyuntech.newheader.widget.FlingScrollView>-->
         </FrameLayout>
 
-        <TextView
+        <FrameLayout
             android:id="@+id/topbar"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:background="@color/bg_color"
-            android:gravity="center"
-            android:text="TOP"
-            android:textColor="#ffffff"
-            android:textSize="30sp" />
+            android:layout_height="50dp">
+
+            <Button
+                android:id="@+id/jump"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="跳转" />
+
+            <TextView
+                android:id="@+id/tv_top"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@color/bg_color"
+                android:gravity="center"
+                android:text="TOP"
+                android:textColor="#ffffff"
+                android:textSize="30sp"
+                android:transitionName="share" />
+        </FrameLayout>
     </com.yeeyuntech.newheader.widget.HeaderView>
 </LinearLayout>
